@@ -24,6 +24,12 @@ users.get("/:id", async (req, res) => {
     res.send(user);
 });
 
+export async function getUser(id) {
+    const db = client.db("college");
+    const coll = db.collection("users");
+    const user = await coll.findOne({ _id: new ObjectId(id) });
+    return user
+}
 
 
 users.post('/', async (req, res) => {
@@ -31,8 +37,8 @@ users.post('/', async (req, res) => {
     const db = client.db("college");
     const coll = db.collection("users");
     user.password = await bcrypt.hash(user.password, 10);
-await coll.insertOne(user);
-res.send(user);
+    await coll.insertOne(user);
+    res.send(user);
 
 
 });
@@ -60,14 +66,14 @@ users.delete("/:id", async (req, res) => {
 })
 
 users.post("/signin", async (req, res) => {
-    const user=await req.body
+    const user = await req.body
     const db = client.db("college");
     const coll = db.collection("users");
 
-    const foundUser = await coll.findOne({ "email":user.email });
+    const foundUser = await coll.findOne({ "email": user.email });
 
     if (!foundUser) {
-        return res.send ({ message: "User not found" });
+        return res.send({ message: "User not found" });
     }
 
     const match = await bcrypt.compare(user.password, foundUser.password);
@@ -76,7 +82,7 @@ users.post("/signin", async (req, res) => {
         return res.send({ message: "Invalid credentials" });
     }
 
-    res.send({ message: "Login successful", user: foundUser});
+    res.send({ message: "Login successful", user: foundUser });
 });
 
 

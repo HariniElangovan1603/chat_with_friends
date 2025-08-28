@@ -1,6 +1,7 @@
 import express from 'express';
 import { ObjectId } from 'mongodb';
 import { client } from '../models/mongodb.js';
+import { getUser } from './users.js';
 
 const post = express.Router();
 
@@ -8,7 +9,15 @@ const post = express.Router();
 post.get('/', async (req, res) => {
   const db = client.db("college");
   const coll = db.collection("post");
-  const dep = await coll.find().toArray();
+  let dep = await coll.find().toArray();
+dep = await Promise.all(
+  dep.map(async (val) => {
+    if (val.userid !== null) {
+      val.userid = await getUser(val.userid);
+    }
+    return val;
+  })
+);
   res.send(dep);
   return dep;
 
@@ -28,13 +37,18 @@ post.post('/', async (req, res) => {
   const { uploadtype } = req.body;
   const db = client.db("college");
   const coll = db.collection("post");
-  await coll.insertOne(req.body);
+
+  const newPost = {
+    ...req.body,
+    time: new Date().toISOString() // store as ISO string
+  };
+
+  await coll.insertOne(newPost);
 
   if (uploadtype === "image") res.send('image created');
   else if (uploadtype === "video") res.send('video created');
   else res.send('post created');
 });
-
 
 post.put('/:id', async (req, res) => {
   const id = req.params.id;
