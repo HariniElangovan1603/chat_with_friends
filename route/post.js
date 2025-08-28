@@ -12,16 +12,6 @@ post.get('/', async (req, res) => {
 
   let dep = await coll.find().toArray();
 
-  dep = await Promise.all(
-    dep.map(async (val) => {
-      if (val.userid !== null) {
-        const user = await getUser(val.userid, db);
-        val.user = user || "Unknown"; // add username field
-      }
-      return val;
-    })
-  );
-
   res.send(dep);
 });
 
