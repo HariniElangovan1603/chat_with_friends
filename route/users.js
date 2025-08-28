@@ -24,8 +24,8 @@ users.get("/:id", async (req, res) => {
     res.send(user);
 });
 
-export async function getUser(id) {
-    const db = client.db("college");
+export async function getUser(id,db) {
+    // const db = client.db("college");
     const coll = db.collection("users");
     const user = await coll.findOne({ _id: new ObjectId(id) });
     return user

@@ -9,18 +9,20 @@ const post = express.Router();
 post.get('/', async (req, res) => {
   const db = client.db("college");
   const coll = db.collection("post");
-  let dep = await coll.find().toArray();
-dep = await Promise.all(
-  dep.map(async (val) => {
-    if (val.userid !== null) {
-      val.userid = await getUser(val.userid);
-    }
-    return val;
-  })
-);
-  res.send(dep);
-  return dep;
 
+  let dep = await coll.find().toArray();
+
+  dep = await Promise.all(
+    dep.map(async (val) => {
+      if (val.userid !== null) {
+        const user = await getUser(val.userid, db);
+        val.user = user || "Unknown"; // add username field
+      }
+      return val;
+    })
+  );
+
+  res.send(dep);
 });
 
 
@@ -57,7 +59,7 @@ post.put('/:id', async (req, res) => {
   const coll = db.collection("post");
   await coll.updateOne({ _id: new ObjectId(id) }, { $set: req.body });
 
-    if (uploadtype === "image") res.send('image created');
+  if (uploadtype === "image") res.send('image created');
   else if (uploadtype === "video") res.send('video created');
   else res.send('updated created');
 });
@@ -65,11 +67,11 @@ post.put('/:id', async (req, res) => {
 
 
 post.delete("/:id", async (req, res) => {
-    const { id } = req.params
-    const db = client.db("college")
-    const coll = await db.collection("post");
-    await coll.deleteOne({ _id: new ObjectId(id) })
-    await res.send(id)
+  const { id } = req.params
+  const db = client.db("college")
+  const coll = await db.collection("post");
+  await coll.deleteOne({ _id: new ObjectId(id) })
+  await res.send(id)
 
 })
 export default post;
